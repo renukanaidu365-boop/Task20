@@ -26,8 +26,5 @@ A laundry service website where you can book laundry services.
 - style.css - Colors and layout
 - script.js - Buttons and cart
 
-## Made by
-[Your Name]
-
 ## Date
 April 3, 2026
