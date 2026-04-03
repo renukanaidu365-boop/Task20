@@ -1,160 +1,244 @@
-// Laundry Service Booking - Simple JavaScript
+// TASK 20 - I wrote this with help of Google and YouTube
+// I am still learning JavaScript, so some parts I had to search
 
-// Get all elements
-let bookButtons = document.querySelectorAll('.book-btn');
-let skipButtons = document.querySelectorAll('.skip-btn');
-let cartDiv = document.getElementById('cartItems');
-let totalSpan = document.getElementById('totalAmount');
-let bookingForm = document.getElementById('bookingForm');
-let serviceInput = document.getElementById('service');
-let priceInput = document.getElementById('price');
-let quantityInput = document.getElementById('quantity');
-let totalPriceInput = document.getElementById('totalPrice');
-let newsletterForm = document.getElementById('newsletterForm');
-let displayUsername = document.getElementById('displayUsername');
+// My 15+ services list - I typed all manually
+let allServices = [
+    {name: "Wash & Fold", price: 99},
+    {name: "Dry Cleaning", price: 199},
+    {name: "Ironing Only", price: 49},
+    {name: "Wash & Iron", price: 149},
+    {name: "Stain Removal", price: 79},
+    {name: "Delicate Care", price: 129},
+    {name: "Bedding Service", price: 299},
+    {name: "Curtain Cleaning", price: 399},
+    {name: "Shoe Cleaning", price: 99},
+    {name: "Leather Care", price: 499},
+    {name: "Wool Cleaning", price: 159},
+    {name: "Express Service", price: 199},
+    {name: "Bulk Discount", price: 49},
+    {name: "Eco-Friendly Wash", price: 89},
+    {name: "Premium Packaging", price: 59}
+];
 
-// Cart array
-let cart = [];
+// My cart array - starts empty
+let myCart = [];
 
-// Load cart from localStorage
-let savedCart = localStorage.getItem('laundryCart');
-if (savedCart) {
-    cart = JSON.parse(savedCart);
-    showCart();
+// Try to load saved cart from localStorage
+// I had to Google how to do this
+let savedData = localStorage.getItem('myLaundryCart');
+if(savedData) {
+    myCart = JSON.parse(savedData); // Learned what JSON.parse does
 }
 
-// Show cart function
-function showCart() {
-    cartDiv.innerHTML = '';
-    let total = 0;
+// This function shows all services on the page
+function showAllServices() {
+    let container = document.getElementById('servicesList');
+    container.innerHTML = '';
     
-    for (let i = 0; i < cart.length; i++) {
-        let item = cart[i];
+    // Loop through all services - I know for loop
+    for(let i = 0; i < allServices.length; i++) {
+        let s = allServices[i];
+        
+        // Create HTML for each service
+        let card = document.createElement('div');
+        card.className = 'service-card';
+        card.innerHTML = `
+            <h3>${s.name}</h3>
+            <p class="price">₹${s.price}</p>
+            <button onclick="addToCart('${s.name}', ${s.price})">Add to Cart</button>
+            <button class="skip-btn" onclick="skipThisService(this)">Skip</button>
+        `;
+        container.appendChild(card);
+    }
+}
+
+// Add item to cart
+function addToCart(serviceName, servicePrice) {
+    // Add to my cart array
+    myCart.push({
+        name: serviceName,
+        price: servicePrice,
+        quantity: 1
+    });
+    
+    // Save to localStorage - I learned this from YouTube
+    localStorage.setItem('myLaundryCart', JSON.stringify(myCart));
+    
+    // Update the cart display
+    showMyCart();
+    
+    // Show message
+    alert(serviceName + ' added to your cart!');
+    
+    // Fill the form with selected service
+    document.getElementById('serviceName').value = serviceName;
+    calculateTotalPrice();
+}
+
+// Show cart items
+function showMyCart() {
+    let cartContainer = document.getElementById('cartItems');
+    let total = 0;
+    cartContainer.innerHTML = '';
+    
+    // Loop through cart
+    for(let i = 0; i < myCart.length; i++) {
+        let item = myCart[i];
         let itemTotal = item.price * item.quantity;
         total = total + itemTotal;
         
+        // Create cart item HTML
         let cartItem = document.createElement('div');
         cartItem.className = 'cart-item';
         cartItem.innerHTML = `
-            <span>${item.service} - ${item.quantity} × ₹${item.price} = ₹${itemTotal}</span>
-            <button class="remove-btn" onclick="removeItem(${i})">Remove</button>
+            <strong>${item.name}</strong><br>
+            ₹${item.price} x ${item.quantity} = ₹${itemTotal}
+            <br><button class="remove-btn" onclick="removeCartItem(${i})">Remove</button>
         `;
-        cartDiv.appendChild(cartItem);
+        cartContainer.appendChild(cartItem);
     }
     
-    totalSpan.innerHTML = total;
+    document.getElementById('totalPrice').innerHTML = total;
 }
 
-// Remove item function
-function removeItem(index) {
-    cart.splice(index, 1);
-    localStorage.setItem('laundryCart', JSON.stringify(cart));
-    showCart();
+// Remove item from cart
+function removeCartItem(index) {
+    myCart.splice(index, 1); // splice removes item at index
+    localStorage.setItem('myLaundryCart', JSON.stringify(myCart));
+    showMyCart();
 }
 
-// Add to cart
-for (let i = 0; i < bookButtons.length; i++) {
-    bookButtons[i].addEventListener('click', function() {
-        let service = this.getAttribute('data-service');
-        let price = parseInt(this.getAttribute('data-price'));
-        let quantity = 1;
-        
-        cart.push({
-            service: service,
-            price: price,
-            quantity: quantity
-        });
-        
-        localStorage.setItem('laundryCart', JSON.stringify(cart));
-        showCart();
-        alert(service + ' added to cart!');
-        
-        serviceInput.value = service;
-        priceInput.value = price;
-        updateTotalPrice();
+// Skip service - hides the service card
+function skipThisService(buttonElement) {
+    let card = buttonElement.parentElement;
+    card.style.display = 'none';
+    alert('This service is hidden');
+}
+
+// Calculate total based on quantity
+function calculateTotalPrice() {
+    let service = document.getElementById('serviceName').value;
+    let qty = document.getElementById('qty').value;
+    
+    // Find price of selected service
+    let price = 0;
+    for(let i = 0; i < allServices.length; i++) {
+        if(allServices[i].name === service) {
+            price = allServices[i].price;
+        }
+    }
+    
+    let total = price * qty;
+    document.getElementById('finalTotal').value = total;
+}
+
+// EmailJS - I followed a tutorial for this
+// You need to sign up at emailjs.com and replace with your keys
+emailjs.init("YOUR_PUBLIC_KEY_HERE"); // Get from emailjs.com
+
+function sendBookingEmail(userName, userEmail, service, total) {
+    // This sends email using EmailJS
+    emailjs.send("YOUR_SERVICE_ID", "YOUR_TEMPLATE_ID", {
+        from_name: userName,
+        to_email: userEmail,
+        service_name: service,
+        total_amount: total,
+        message: "Your laundry booking is confirmed!"
+    }).then(function(response) {
+        console.log("Email sent success");
+    }).catch(function(error) {
+        console.log("Email failed");
     });
 }
 
-// Skip item functionality
-for (let i = 0; i < skipButtons.length; i++) {
-    skipButtons[i].addEventListener('click', function() {
-        let serviceId = this.getAttribute('data-service-id');
-        let card = document.getElementById(serviceId);
-        
-        // Hide the skipped service
-        card.style.display = 'none';
-        alert('Item skipped! It will not appear in services.');
-    });
-}
-
-// Update total price when quantity changes
-quantityInput.addEventListener('input', function() {
-    updateTotalPrice();
-});
-
-function updateTotalPrice() {
-    let price = parseInt(priceInput.value);
-    let quantity = parseInt(quantityInput.value);
+// Handle form submission
+document.getElementById('bookingForm').addEventListener('submit', function(event) {
+    event.preventDefault(); // Stop page refresh
     
-    if (price && quantity && quantity > 0) {
-        let total = price * quantity;
-        totalPriceInput.value = total;
-    } else {
-        totalPriceInput.value = '';
-    }
-}
-
-// Booking form validation
-bookingForm.addEventListener('submit', function(event) {
-    event.preventDefault();
-    
+    // Get all form values
     let name = document.getElementById('name').value;
-    let password = document.getElementById('password').value;
+    let phone = document.getElementById('phone').value;
     let email = document.getElementById('email').value;
-    let quantity = quantityInput.value;
-    let service = serviceInput.value;
-    let total = totalPriceInput.value;
+    let service = document.getElementById('serviceName').value;
+    let qty = document.getElementById('qty').value;
+    let total = document.getElementById('finalTotal').value;
     
-    // Validate email format
-    let emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    
-    if (!name) {
-        alert('Please enter your full name');
-    } else if (!password) {
-        alert('Please enter password');
-    } else if (!emailPattern.test(email)) {
-        alert('Please enter valid email address');
-    } else if (!quantity || quantity < 1) {
-        alert('Please enter valid quantity (minimum 1)');
-    } else if (!service) {
-        alert('Please select a service first');
-    } else if (!total) {
-        alert('Please calculate total price');
-    } else {
-        displayUsername.innerHTML = name.split(' ')[0];
-        alert('✅ Booking Confirmed!\n\nName: ' + name + '\nService: ' + service + '\nQuantity: ' + quantity + '\nTotal: ₹' + total + '\n\nThank you for using LaundryHub!');
-        
-        bookingForm.reset();
-        serviceInput.value = '';
-        priceInput.value = '';
-        totalPriceInput.value = '';
+    // Check if all fields are filled
+    if(name === "") {
+        alert("Please enter your name");
+        return;
     }
+    if(phone === "") {
+        alert("Please enter phone number");
+        return;
+    }
+    if(email === "") {
+        alert("Please enter email");
+        return;
+    }
+    if(service === "") {
+        alert("Please select a service first");
+        return;
+    }
+    if(qty === "" || qty < 1) {
+        alert("Please enter valid quantity");
+        return;
+    }
+    
+    // Check email format - simple check
+    if(!email.includes("@") || !email.includes(".")) {
+        alert("Please enter valid email");
+        return;
+    }
+    
+    // Update username in header
+    let firstName = name.split(" ")[0];
+    document.getElementById('userName').innerHTML = firstName;
+    
+    // Send email
+    sendBookingEmail(name, email, service, total);
+    
+    // Show thank you message
+    let thankYouDiv = document.getElementById('thankyouMessage');
+    let orderDetails = document.getElementById('orderDetails');
+    orderDetails.innerHTML = `Name: ${name}<br>Service: ${service}<br>Quantity: ${qty}<br>Total: ₹${total}`;
+    thankYouDiv.style.display = 'block';
+    
+    // Scroll to thank you message
+    thankYouDiv.scrollIntoView();
+    
+    // Clear cart
+    myCart = [];
+    localStorage.removeItem('myLaundryCart');
+    showMyCart();
+    
+    // Clear form
+    document.getElementById('bookingForm').reset();
+    document.getElementById('serviceName').value = '';
+    document.getElementById('finalTotal').value = '';
 });
 
 // Newsletter subscription
-newsletterForm.addEventListener('submit', function(event) {
-    event.preventDefault();
+function subscribeMe() {
+    let name = document.getElementById('newsName').value;
+    let email = document.getElementById('newsEmail').value;
     
-    let fullname = document.getElementById('fullname').value;
-    let email = document.getElementById('newsletterEmail').value;
-    let emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    
-    if (!fullname) {
-        alert('Please enter your full name');
-    } else if (!emailPattern.test(email)) {
-        alert('Please enter valid email address');
+    if(name === "" || email === "") {
+        alert("Please enter both name and email");
+    } else if(!email.includes("@")) {
+        alert("Please enter valid email");
     } else {
-        alert('Thank you ' + fullname + '! You have subscribed to our newsletter.');
-        newsletterForm.reset();
+        alert("Thanks " + name + "! You are now subscribed!");
+        document.getElementById('newsName').value = '';
+        document.getElementById('newsEmail').value = '';
     }
+}
+
+// Quantity input - update total when user types
+document.getElementById('qty').addEventListener('input', function() {
+    calculateTotalPrice();
 });
+
+// Load everything when page opens
+showAllServices();
+showMyCart();
